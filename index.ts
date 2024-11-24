@@ -2,7 +2,8 @@ import express, { text } from "express";
 import multer from "multer";
 import nunjucks from "nunjucks";
 import open from "open";
-
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Firebase
 import { initializeApp } from "@firebase/app";
@@ -73,7 +74,10 @@ njk.addFilter("date", (date: number) => {
 });
 
 // File static
-app.use(express.static(__dirname + "/public"));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, "public")));
 // Jangan perbolehkan akses kalau belum login
 app.use((req, res, next) => {
     if ((
