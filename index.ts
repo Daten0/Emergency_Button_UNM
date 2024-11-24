@@ -107,7 +107,7 @@ app.get("/", (_req, res) => {
 // POST Terima data emergency lalu kirim ke telegram
 app.post("/emergency", express.json(), async (req, res): Promise<any> => {
     if (!currentUser) {
-        return res.json({ error: true, message: "Status login tidak ditemukan." });
+        return res.json({ error: true, message: "Pengguna tidak ditemukan atau belum login" });
     }
 
     console.log("Laporan baru dari " + currentUser.displayName);
@@ -119,7 +119,21 @@ app.post("/emergency", express.json(), async (req, res): Promise<any> => {
             date: Date.now(),
             gmap: `https://www.google.com/maps?q=loc:${req.body.latitude},${req.body.longitude}`
         }
+        // Debugging
+        console.log("Memeriksa dokumen history untuk UID:", currentUser.uid);
+        //
+        const historyRef = doc(firestore, "history", currentUser.uid);
+        const historyDoc = await getDoc(historyRef);
 
+        if (!historyDoc.exists()) {
+            // Jika dokumen tidak ada, buat dokumen baru dengan data awal
+            await setDoc(historyRef, { history: [data] });
+        } else {
+            // Jika dokumen ada, tambahkan data ke array history
+            await updateDoc(historyRef, {
+                history: arrayUnion(data)
+            });
+        }
         // Tambah emergency user ke history
         console.log("Menyimpan history...");
         await updateDoc(doc(firestore, "history", currentUser.uid), {
@@ -300,6 +314,12 @@ app.post("/register", upload.single("register-photo"), async (req, res) => {
     await setDoc(doc(firestore, "users", user.uid), userInformation);
     // Simpan placeholder history
     await setDoc(doc(firestore, "history", user.uid), { history: [] });
+    try {
+        await setDoc(doc(firestore, "history", user.uid), { history: [] });
+        console.log("Dokumen history berhasil dibuat.");
+    } catch (error) {
+        console.error("Gagal membuat dokumen history:", error);
+    }
 
     // Lanjutkan ke login
     console.log("Penyimpanan user dan informasi berhasil!");
