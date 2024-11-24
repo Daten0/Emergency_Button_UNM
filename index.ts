@@ -292,3 +292,5 @@ app.listen(process.env.PORT || 8080, () => {
 });
 // const port = process.env.PORT || 8080;
 // app.listen(port, () => console.log('Listening to port ${port}'));
+// const PORT = process.env.PORT;
+// app.listen(PORT, () => console.log(`Listening to port ${PORT}`)); // eslint-disable-line
