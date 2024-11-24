@@ -139,11 +139,11 @@ app.post("/emergency", express.json(), async (req, res): Promise<any> => {
         message += `\n\n`;
         message += data.gmap;
 
-        await fetch(`https://api.telegram.org/bot${Bun.env["TELEGRAM_BOT_TOKEN"]}/sendMessage`, {
+        await fetch(`https://api.telegram.org/bot${process.env["TELEGRAM_BOT_TOKEN"]}/sendMessage`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                chat_id: Bun.env["TELEGRAM_CHAT_ID"],
+                chat_id: process.env["TELEGRAM_CHAT_ID"],
                 text: message
             })
         });
@@ -187,7 +187,6 @@ app.get("/profile", async (_req, res) => {
 
 // Akses ke foto profil
 app.use("/uploads", express.static(__dirname + "/uploads"));
-
 // Halaman riwayat
 app.get("/history", async (_req, res) => {
     const histories = await getDoc(doc(firestore, "history", currentUser?.uid || "0"))
