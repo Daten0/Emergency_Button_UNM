@@ -4,6 +4,8 @@ import nunjucks from "nunjucks";
 import open from "open";
 import path from "path";
 import { fileURLToPath } from "url";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 
 // Firebase
 import { initializeApp } from "@firebase/app";
@@ -37,6 +39,7 @@ const firebaseApp = initializeApp({
 });
 const firebaseAuth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 let currentUser: User | null;
 
 // Perhatikan state login pengguna
@@ -182,7 +185,7 @@ app.get("/profile", async (_req, res) => {
         .then(res => res.data())
         .catch(console.error);
 
-    res.render("profile", { title: "Profil", information });
+    res.render("profile", { title: "Profil", information, photoURL: currentUser?.photoURL });
 });
 
 // Akses ke foto profil
@@ -267,7 +270,21 @@ app.post("/register", upload.single("register-photo"), async (req, res) => {
     try {
         user = await createUserWithEmailAndPassword(firebaseAuth, email, password)
             .then(user => user.user);
-        
+        // Simpan foto ke Firebase Storage jika ada
+        if (req.file) {
+            const photoBuffer = req.file.buffer; // Ambil buffer foto
+            const storageRef = ref(storage, `profile_pictures/${user.uid}.jpg`);
+            await uploadBytes(storageRef, photoBuffer);
+            const photoURL = await getDownloadURL(storageRef); // Ambil URL foto yang dapat diakses
+
+            // Simpan URL foto ke Firebase Authentication dan Firestore
+            await updateProfile(user, {
+                displayName: req.body["register-name"],
+                photoURL: photoURL
+            });
+
+            userInformation.photo = photoURL; // Simpan URL foto di Firestore
+        }
         // Simpan data pribadi juga ke Authentication
         updateProfile(user, {
             displayName: req.body["register-name"],
