@@ -2,7 +2,6 @@ import express, { text } from "express";
 import multer from "multer";
 import nunjucks from "nunjucks";
 import open from "open";
-import Bun from 'bun';
 
 
 // Firebase
