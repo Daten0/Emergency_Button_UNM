@@ -47,7 +47,7 @@ onAuthStateChanged(firebaseAuth, (user) => {
 // App baru
 const app = express();
 // Handle form-data
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Persiapkan nunjucks
 app.set("view engine", "njk");
